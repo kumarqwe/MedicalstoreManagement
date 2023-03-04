@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="jquery/jquery.js"></script>
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $.ajax({
+                type: 'GET',
+                url: 'api/LoginRegistration/Login',
+                success: function (data) {
+                    $.each(data, function (index, val) {
+                        var row = "<tr><td>" + val.userId + "</td><td>" + val.eMail + "</td><td>" + val.password + "</td><td>" + val.rePasssword + "</td><td>";
+                        $("#tbltrainer").append(row);
+                    });
+                }
+            });
+        });
+    </script>
+</head>
+<body style="background-color:burlywood">
+    <h1 class="alert alert-primary">CourseDetails</h1>
+
+    <table class="table table-bordered w-50" id="tbltrainer" style="background-color:darkviolet;margin-top:100px;margin-left:100px;color:white">
+        <tr>
+            <th>UserId</th>
+            <th>Email</th>
+            <th>Password</th>
+            <th>RePassword</th>
+        </tr>
+    </table>
+
+</body>
+</html>

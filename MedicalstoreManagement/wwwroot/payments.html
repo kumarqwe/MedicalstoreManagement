@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="jquery/jquery.js"></script>
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $.ajax({
+                type: 'GET',
+                url: 'api/Payments/Payment',
+                success: function (data) {
+                    $.each(data, function (index, val) {
+                        var row = "<tr><td>" + val.paymentId + "</td><td>" + val.userId + "</td><td>" + val.transactionAmount + "</td><td>" + val.paymentMethod + "</td><td>" + val.reciept + "</td><td>" + val.paymentAt + "</td><td>";
+                        $("#tbltrainer").append(row);
+                    });
+                }
+            });
+        });
+    </script>
+</head>
+<body style="background-color:burlywood">
+    <h1 class="alert alert-primary">CourseDetails</h1>
+
+    <table class="table table-bordered w-50" id="tbltrainer" style="background-color:darkviolet;margin-top:100px;margin-left:100px;color:white">
+        <tr>
+            <th>PaymentId</th>
+            <th>UserId</th>
+            <th>TransactionAmount</th>
+            <th>PaymentMethod</th>
+            <th>Reciept</th>
+            <th>PaymentAt</th>
+        </tr>
+    </table>
+
+</body>
+</html>
