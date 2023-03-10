@@ -27,6 +27,7 @@ namespace MedicalstoreManagement.Controllers
         public IActionResult Getevent()
         {
 
+
             List<EventDetails> eventdetails = _DbContext.EventDetails.ToList();
 
             return StatusCode(200, eventdetails);

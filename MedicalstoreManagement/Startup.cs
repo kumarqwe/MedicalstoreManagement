@@ -18,6 +18,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Threading.Tasks;
 using MedicalstoreManagement.Repository;
+using MedicalstoreManagement.ExceptionHandlerMiddleware;
+using MedicalstoreManagement.Logger;
 
 namespace MedicalstoreManagement
 {
@@ -52,7 +54,7 @@ namespace MedicalstoreManagement
                     IssuerSigningKey = new SymmetricSecurityKey(Key)
                 };
             });
-
+            services.AddSingleton<ILoggerService, LoggerService>();
             services.AddSingleton<IJWTManagerRepository, JWTManagerRepository>();
             services.AddControllers(config =>
             {
@@ -73,6 +75,7 @@ namespace MedicalstoreManagement
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
+            app.UseMiddleware<ExceptionMiddleware>();
 
             app.UseRouting();
 
@@ -84,6 +87,7 @@ namespace MedicalstoreManagement
             {
                 endpoints.MapControllers();
             });
+
         }
     }
 }
