@@ -1,8 +1,10 @@
-﻿using MedicalstoreManagement.Models;
+﻿using MedicalstoreManagement.Logger;
+using MedicalstoreManagement.Models;
 using MedicalstoreManagement.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,38 +14,54 @@ namespace MedicalstoreManagement.Controllers
     [ApiController]
     public class InvitationController : ControllerBase
     {
-        private readonly IJWTManagerRepository _jWTManager;
+        private ILoggerService _logger;
         private readonly medical_store_management_systemDbContext _DbContext;
 
-        public InvitationController(IJWTManagerRepository _jWTManager, medical_store_management_systemDbContext dbContext)
+        public InvitationController( medical_store_management_systemDbContext dbContext, ILoggerService logger)
         {
-            this._jWTManager = _jWTManager;
+            
             this._DbContext = dbContext;
+            _logger = logger;
         }
 
         [HttpGet("Invitation")]
         [ServiceFilter(typeof(ActionFilterExamp))]
         public IActionResult Invitation()
         {
-
-            List<Invitation> invitations = _DbContext.Invitation.ToList();
-
-            return StatusCode(200, invitations);
-
-        }
-        [AllowAnonymous]
-        [HttpPost]
-        [Route("authenticate")]
-        public IActionResult Authenticate([FromBody] Users usersdata)
-        {
-            var token = _jWTManager.Authenticate(usersdata);
-
-            if (token == null)
+            try
             {
-                return Unauthorized();
+                _logger.LogInfo("Fetching All invitation details");
+                List<Invitation> invitations = _DbContext.Invitation.ToList();
+                _logger.LogInfo($"Total medicine booking count: {invitations.Count}");
+                return StatusCode(200, invitations);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while fetching the booking medicines: {ex.Message}");
+                return StatusCode(500, "Internal server error occurred while fetching the booking medicines.");
+                throw;
             }
 
-            return Ok(token);
+        }
+        [HttpPost]
+        public IActionResult AddBooking(Invitation invitations)
+        {
+            try
+            {
+                _logger.LogInfo("Adding new booking medicine");
+
+                _DbContext.Invitation.Add(invitations);
+                _DbContext.SaveChanges();
+
+                _logger.LogInfo($"Booking medicine added: {invitations}");
+                return StatusCode(201, "Booking medicine added successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while adding the booking medicine: {ex.Message}");
+                return StatusCode(500, "Internal server error occurred while adding the booking medicine.");
+                throw;
+            }
         }
     }
 }

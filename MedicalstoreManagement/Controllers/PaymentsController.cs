@@ -1,8 +1,10 @@
-﻿using MedicalstoreManagement.Models;
+﻿using MedicalstoreManagement.Logger;
+using MedicalstoreManagement.Models;
 using MedicalstoreManagement.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,38 +14,36 @@ namespace MedicalstoreManagement.Controllers
     [ApiController]
     public class PaymentsController : ControllerBase
     {
-        private readonly IJWTManagerRepository _jWTManager;
+        private ILoggerService _logger;
         private readonly medical_store_management_systemDbContext _DbContext;
 
-        public PaymentsController(IJWTManagerRepository _jWTManager, medical_store_management_systemDbContext dbContext)
+        public PaymentsController( medical_store_management_systemDbContext dbContext, ILoggerService logger)
         {
-            this._jWTManager = _jWTManager;
+            
             this._DbContext = dbContext;
+            this._logger = logger;
+
         }
 
         [HttpGet("Payment")]
         [ServiceFilter(typeof(ActionFilterExamp))]
         public IActionResult Payment()
         {
-
-            List<Payments> payments = _DbContext.Payments.ToList();
-
-            return StatusCode(200, payments);
-
-        }
-        [AllowAnonymous]
-        [HttpPost]
-        [Route("authenticate")]
-        public IActionResult Authenticate([FromBody] Users usersdata)
-        {
-            var token = _jWTManager.Authenticate(usersdata);
-
-            if (token == null)
+            try
             {
-                return Unauthorized();
+                _logger.LogInfo("Fetching All payments details");
+                List<Payments> payments = _DbContext.Payments.ToList();
+                _logger.LogInfo($"Total medicine booking count: {payments.Count}");
+                return StatusCode(200, payments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while adding the booking medicine: {ex.Message}");
+                return StatusCode(500, "Internal server error occurred while adding the booking medicine.");
+                throw;
             }
 
-            return Ok(token);
         }
+        
     }
 }

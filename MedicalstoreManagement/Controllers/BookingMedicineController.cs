@@ -11,18 +11,18 @@ using System;
 
 namespace MedicalstoreManagement.Controllers
 {
-    [Authorize]
+    
     [Route("api/[controller]")]
     [ApiController]
     public class BookingMedicineController : ControllerBase
     {
         private ILoggerService _logger;
-        private readonly IJWTManagerRepository _jWTManager;
+        
         private readonly medical_store_management_systemDbContext _DbContext;
 
-        public BookingMedicineController(IJWTManagerRepository _jWTManager, medical_store_management_systemDbContext dbContext,ILoggerService logger)
+        public BookingMedicineController( medical_store_management_systemDbContext dbContext,ILoggerService logger)
         {
-            this._jWTManager= _jWTManager;
+            
             this._DbContext = dbContext;
             this._logger = logger;
         }
@@ -47,19 +47,25 @@ namespace MedicalstoreManagement.Controllers
             }
 
         }
-        [AllowAnonymous]
         [HttpPost]
-        [Route("authenticate")]
-        public IActionResult Authenticate([FromBody]Users usersdata)
+        public IActionResult AddBooking(BookingMedicine bookingMedicine)
         {
-            var token = _jWTManager.Authenticate(usersdata);
-
-            if (token == null)
+            try
             {
-                return Unauthorized();
-            }
+                _logger.LogInfo("Adding new booking medicine");
 
-            return Ok(token);
+                _DbContext.BookingMedicine.Add(bookingMedicine);
+                _DbContext.SaveChanges();
+
+                _logger.LogInfo($"Booking medicine added: {bookingMedicine}");
+                return StatusCode(201, "Booking medicine added successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while adding the booking medicine: {ex.Message}");
+                return StatusCode(500, "Internal server error occurred while adding the booking medicine.");
+                throw;
+            }
         }
 
     }

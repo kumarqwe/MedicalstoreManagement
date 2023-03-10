@@ -5,47 +5,65 @@ using System.Collections;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using MedicalstoreManagement.Repository;
+using MedicalstoreManagement.Logger;
+using System;
 
 namespace MedicalstoreManagement.Controllers
 {
-    [Authorize]
+    
     [Route("api/[controller]")]
     [ApiController]
     public class EventDetailsController : Controller
     {
-        private readonly IJWTManagerRepository _jWTManager;
+        private ILoggerService _logger;
         private readonly medical_store_management_systemDbContext _DbContext;
 
-        public EventDetailsController(IJWTManagerRepository _jWTManager, medical_store_management_systemDbContext dbContext)
+        public EventDetailsController( medical_store_management_systemDbContext dbContext, ILoggerService logger)
         {
-            this._jWTManager = _jWTManager;
+          
             this._DbContext = dbContext;
+            this._logger = logger;
         }
 
         [HttpGet("Getevent")]
         [ServiceFilter(typeof(ActionFilterExamp))]
         public IActionResult Getevent()
         {
-
-
-            List<EventDetails> eventdetails = _DbContext.EventDetails.ToList();
-
-            return StatusCode(200, eventdetails);
-
-        }
-        [AllowAnonymous]
-        [HttpPost]
-        [Route("authenticate")]
-        public IActionResult Authenticate([FromBody] Users usersdata)
-        {
-            var token = _jWTManager.Authenticate(usersdata);
-
-            if (token == null)
+            try
             {
-                return Unauthorized();
+                _logger.LogInfo("Fetching All Event details");
+                List<EventDetails> eventdetails = _DbContext.EventDetails.ToList();
+                _logger.LogInfo($"Total medicine booking count: {eventdetails.Count}");
+                return StatusCode(200, eventdetails);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while fetching the booking medicines: {ex.Message}");
+                return StatusCode(500, "Internal server error occurred while fetching the booking medicines.");
+                throw;
             }
 
-            return Ok(token);
+
+        }
+        [HttpPost]
+        public IActionResult AddBooking(EventDetails eventdetails)
+        {
+            try
+            {
+                _logger.LogInfo("Adding new booking medicine");
+
+                _DbContext.EventDetails.Add(eventdetails);
+                _DbContext.SaveChanges();
+
+                _logger.LogInfo($"Booking medicine added: {eventdetails}");
+                return StatusCode(201, "Booking medicine added successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while adding the booking medicine: {ex.Message}");
+                return StatusCode(500, "Internal server error occurred while adding the booking medicine.");
+                throw;
+            }
         }
     }
 }
